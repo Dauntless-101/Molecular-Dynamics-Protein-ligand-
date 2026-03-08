@@ -11,7 +11,7 @@ Provide ready-to-use GROMACS workflows from structure preparation to energy mini
 Highlight common pitfalls (bad starting structures, LINCS errors, constraint failures) and show how to fix them.
 Save researchers time, sanity, and computational resources by providing a structured, reproducible approach.
 
-⚡ Key Features
+Key Features
 Protein preparation with hydrogens, missing residues, and topology generation.
 Solvation and ionization steps for realistic physiological conditions.
 Energy minimization with Steepest Descent, including troubleshooting LINCS warnings and extreme force deviations.
@@ -32,7 +32,7 @@ Time-consuming trial-and-error workflows
 Many tutorials skip over these critical troubleshooting steps, costing researchers hours or days.
 This repository exists to guide users past these hurdles, providing a reproducible workflow that minimizes frustration and maximizes reliability.
 
- Workflow Overview
+Workflow Overview
 
 Protein preparation: Add hydrogens, fix missing residues, generate topology with GROMACS pdb2gmx.
 Ligand preparation:generate parameters using ACPYPE, CGenFF, or Antechamber depending on the force field,merge ligand topology with protein topology for a unified system.
