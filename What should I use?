@@ -1,5 +1,5 @@
 Before diving into MD, there are a lot of subtle things that can save hours or days of your time.
-(Downloading link at the bottom)
+(Downloading link at the bottom) 
 1. Why did I use GROMACS ?
 GROMACS (GROningen MAchine for Chemical Simulations) is one of the most widely used molecular dynamics engines in the world, and for good reasons:
 Speed and Efficiency:Can simulate large protein-ligand systems faster than most other MD engines while maintaining accuracy.
