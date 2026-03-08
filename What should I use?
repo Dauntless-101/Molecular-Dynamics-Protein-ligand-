@@ -1,0 +1,39 @@
+Before diving into MD, there are a lot of subtle things that can save hours or days of your time.
+1. Why did I use GROMACS ?
+GROMACS (GROningen MAchine for Chemical Simulations) is one of the most widely used molecular dynamics engines in the world, and for good reasons:
+Speed and Efficiency:Can simulate large protein-ligand systems faster than most other MD engines while maintaining accuracy.
+Open-Source and Free
+Flexibility and Compatibility: supports a wide range of force fields, solvents, and constraints, compatible with standard topology generators (pdb2gmx, ACPYPE, CGenFF), can handle complex protein-ligand, membrane, and nucleic acid systems.
+
+Strong Community and Documentation: Extensive tutorials and user forums make troubleshooting easier and active development ensures stability, bug fixes, and performance improvements.
+
+Reproducibility: deterministic algorithms and checkpointing allow reproducible runs, which is critical for research and publication.
+This table compares GROMACS to other MD softwares
+| Feature / Aspect    | **GROMACS**                                                         | **AMBER**                                                 | **NAMD**                                   | **Desmond**                                            |
+| ------------------- | ------------------------------------------------------------------- | --------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------ |
+| **Performance**     | Extremely fast on CPU/GPU; optimized SIMD                           | Fast, but generally slower than GROMACS for large systems | Efficient, but depends heavily on hardware | Very fast on GPUs; license required for full features  |
+| **Ease of Use**     | Open-source, strong tutorials & community                           | Well-documented, but more academic setup                  | Moderate; script-heavy                     | User-friendly GUI, less flexible in scripts            |
+| **Ligand Support**  | Integrates with ACPYPE, CGenFF; easy protein-ligand workflow        | AMBER tools (Antechamber)                                 | Limited; may need external ligand tools    | Ligand setup possible, but often proprietary workflows |
+| **Reproducibility** | Checkpoints, deterministic algorithms                               | Good, but dependent on version                            | Good                                       | Proprietary methods can limit reproducibility          |
+| **Flexibility**     | Highly flexible (constraints, force fields, thermostats, barostats) | Moderate; mostly AMBER force fields                       | Flexible, but script-heavy                 | Less flexible for non-standard setups                  |
+| **Cost**            | Free & open-source                                                  | Free for academic; license for commercial                 | Free                                       | Commercial license for full features                   |
+
+2. Why CHARMM36-JUL2022 Force Field?
+
+Choosing the right force field (FF) is crucial for MD accuracy. CHARMM36-JUL2022 is selected here for protein-ligand systems for several reasons:
+
+State-of-the-Art Accuracy: Latest CHARMM36 parameterization (July 2022) includes improved backbone and side-chain parameters for proteins, making dynamics more realistic + Updates include better treatment of ions, water models, and small molecules, reducing structural artifacts.
+Compatibility with Ligands: CHARMM36 integrates seamlessly with CGenFF, allowing consistent and reliable parametrization of drug-like ligands, and avoids force-field mixing errors, which often cause EM or MD crashes.
+Widely Validated: Extensively used in literature for protein-ligand, membrane, and nucleic acid simulations + Benchmarked against experimental data (NMR, X-ray) for protein folding, secondary structure stability, and binding affinities.
+Stability in Energy Minimization and MD: Compared to older force fields or other families (AMBER, OPLS), CHARMM36-JUL2022 is less prone to extreme forces or LINCS failures, particularly in complex systems with ligands and water.
+Future-Proof for Advanced Simulations: Well-suited for long MD runs, enhanced sampling, or free energy calculations, ensuring that this setup can be extended beyond initial studies.
+
+This table shows the differences between each FF
+| Feature / Aspect                   | **CHARMM36-JUL2022**                                      | **AMBER ff19SB**                                           | **OPLS-AA**                                          | **GROMOS**                           |
+| ---------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------- | ------------------------------------ |
+| **Protein Accuracy**               | Updated backbone & side-chain parameters; highly accurate | Accurate, but older versions may deviate for certain loops | Moderate; side-chain accuracy can vary               | Less accurate for modern ligands     |
+| **Ligand Compatibility**           | Seamless with CGenFF for drug-like ligands                | Needs Antechamber; careful parameterization                | Compatible but sometimes requires manual adjustments | Ligand support limited               |
+| **Ion & Water Models**             | Modern updates, more stable in EM/MD                      | Accurate, but fewer updates for ions                       | Standard models, may need tuning                     | Older models, less realistic         |
+| **Stability in EM/MD**             | Less prone to LINCS or extreme force failures             | Generally stable                                           | Stable, but slower EM convergence                    | Can be unstable with small molecules |
+| **Community & Literature Support** | Widely validated; latest 2022 updates                     | Extensive, many publications                               | Moderate                                             | Limited, mostly legacy studies       |
+| **Future-Proof**                   | Ready for enhanced sampling, free energy calculations     | Good, but may require older AMBER updates                  | Moderate                                             | Limited for advanced simulations     |
