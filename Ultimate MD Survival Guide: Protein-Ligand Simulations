@@ -1,0 +1,80 @@
+Goal: Save your sanity and time by avoiding common MD pitfalls. This guide is designed for beginners and experienced researchers alike.
+
+Pre-MD Checklist: Sanity Steps
+System Preparation
+Clean protein: fix missing residues, add hydrogens.
+Validate ligand: charges, bonds, torsions.
+Rename ligand residue from PubChem ID to LIG before topology generation.
+Remove unwanted molecules (crystallographic waters, extra ions).
+
+Box & Solvation
+Use ≥1 nm buffer from protein-ligand complex to box edges.
+Solvate carefully; check overlapping waters.
+Neutralize system and add physiological ions (~0.15 M NaCl).
+
+Energy Minimization (EM)
+Steepest Descent EM first; disable constraints if EM fails.
+Check max force < 1000 kJ/mol/nm.
+Visual check: no overlapping atoms or stretched bonds.
+
+Equilibration
+| Step    | Target | Duration   | Restraints                  | Notes                                              |
+| ------- | ------ | ---------- | --------------------------- | -------------------------------------------------- |
+| **NVT** | 300 K  | 100–500 ps | Protein & ligand restrained | Check RMSD & temperature ±2–5 K                    |
+| **NPT** | 1 bar  | 100–500 ps | Same restraints             | Density stabilizes (~1000 kg/m³); pressure ±10 bar |
+
+Production MD
+Time step: 2 fs (with hydrogen constraints).
+Check temperature, pressure, and forces.
+Save checkpoints frequently.
+
+4️⃣ Topology Practices
+Do NOT edit topol.top manually after EM/equilibration.
+Changing atom counts, molecule definitions, or charges manually → MD crashes.
+Regenerate topology only when adding/removing molecules (ligands, ions).
+Rename ligand residues before topology generation so force field recognizes them.
+
+5️⃣ Do’s & Don’ts Cheat Sheet
+✅ DOs
+
+Clean structures and validate ligands.
+Rename ligands from PubChem IDs → LIG before generating topologies.
+Keep ≥1 nm box buffer, neutralize, and add ions.
+EM first (max force <1000 kJ/mol/nm).
+NVT/NPT equilibration before production; monitor RMSD, T, P, density.
+Use GROMACS + CHARMM36-JUL2022.
+Save checkpoints and logs; visualize frequently.
+
+❌ DON’Ts
+Don’t skip EM, NVT, or NPT.
+Don’t leave overlapping atoms or distorted structures.
+Don’t manually edit topol.top after equilibration.
+Don’t run MD with extreme forces or LINCS failures unresolved.
+Don’t use ligand PubChem IDs without renaming.
+
+6️⃣ Common Error Texts to Watch For
+
+During EM, NVT, NPT, or production MD, these errors indicate potential system problems:
+
+| Error                                          | What It Means                | How to Fix                                                     |
+| ---------------------------------------------- | ---------------------------- | -------------------------------------------------------------- |
+| `LINCS WARNING: relative constraint deviation` | Bonds stretched beyond 30°   | Check topology, constraints, EM convergence                    |
+| `Maximum force > 1e+18 kJ/mol/nm`              | System exploded              | Inspect ligand/protein clashes, solvation overlaps, restraints |
+| `Potential energy = huge number`               | EM failed                    | Check box size, topology, or ligand parametrization            |
+| `Failed to read topology`                      | `topol.top` altered manually | Restore original topol.top; regenerate if ligand added         |
+| `Atom not recognized`                          | Ligand residue name invalid  | Rename ligand (LIG/JWH) before topology generation             |
+
+
+Tip: Always inspect PDB snapshots after EM/NVT/NPT to catch distorted bonds or steric clashes.
+
+7️⃣ Quick Sanity Tips
+
+Small EM time steps: 1–2 fs.
+
+Visualize system often (PyMOL or VMD).
+
+Backup original structures and .mdp files.
+
+Document all parameters for reproducibility.
+
+If EM/NVT/NPT repeatedly fails → check ligand topology, restraints, and box size first.
