@@ -1,6 +1,6 @@
 Goal: Save your sanity and time by avoiding common MD pitfalls. This guide is designed for beginners and experienced researchers alike.
 
-1️⃣ Pre-MD Checklist: Sanity Steps
+1). Pre-MD Checklist: Sanity Steps
 System Preparation
 Clean protein: fix missing residues, add hydrogens.
 Validate ligand: charges, bonds, torsions.
@@ -28,14 +28,14 @@ Time step: 2 fs (with hydrogen constraints).
 Check temperature, pressure, and forces.
 Save checkpoints frequently.
 
-2️⃣ Topology Practices
+2). Topology Practices
 Do NOT edit topol.top manually after EM/equilibration.
 Changing atom counts, molecule definitions, or charges manually → MD crashes.
 Regenerate topology only when adding/removing molecules (ligands, ions).
 Rename ligand residues before topology generation so force field recognizes them.
 
-3️⃣ Do’s & Don’ts Cheat Sheet
-✅ DOs
+3). Do’s & Don’ts Cheat Sheet
+ DOs
 Clean structures and validate ligands.
 Rename ligands from PubChem IDs → LIG before generating topologies.
 Keep ≥1 nm box buffer, neutralize, and add ions.
@@ -44,14 +44,14 @@ NVT/NPT equilibration before production; monitor RMSD, T, P, density.
 Use GROMACS + CHARMM36-JUL2022.
 Save checkpoints and logs; visualize frequently.
 
-❌ DON’Ts
+ DON’Ts
 Don’t skip EM, NVT, or NPT.
 Don’t leave overlapping atoms or distorted structures.
 Don’t manually edit topol.top after equilibration.
 Don’t run MD with extreme forces or LINCS failures unresolved.
 Don’t use ligand PubChem IDs without renaming.
 
-4️⃣ Common Error Texts to Watch For
+4). Common Error Texts to Watch For
 
 During EM, NVT, NPT, or production MD, these errors indicate potential system problems:
 
@@ -66,7 +66,7 @@ During EM, NVT, NPT, or production MD, these errors indicate potential system pr
 
 Tip: Always inspect PDB snapshots after EM/NVT/NPT to catch distorted bonds or steric clashes.
 
-5️⃣ Quick Sanity Tips
+5). Quick Sanity Tips
 
 Small EM time steps: 1–2 fs.
 Visualize system often (PyMOL or VMD).
