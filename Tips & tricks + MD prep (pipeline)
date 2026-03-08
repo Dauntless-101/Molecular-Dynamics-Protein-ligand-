@@ -1,0 +1,81 @@
+1️⃣ Start with a clean structure
+
+Check the PDB for missing residues, missing atoms, or alternate conformations.
+Fix missing hydrogens: force fields need them.
+Remove unwanted molecules: crystallographic waters, ligands not part of your study, ions that aren’t physiological.
+Make sure you have no Post-translational modification (PTM) in your protein because the pipeline cannot support it so reverse the modification if u know the initial amino acid. 
+Tools: PyMOL, Chimera, or pdb2gmx for GROMACS.
+
+2️⃣ Choose the right force field
+
+Common choices for proteins: AMBER99SB-ILDN, CHARMM36, OPLS-AA.
+For ligands, use ACPYPE, Antechamber (AMBER), or CGenFF (CHARMM) to generate parameters.
+Avoid mixing incompatible force fields — this can cause huge forces and LINCS failures.
+I recommand preparing your ligand in CGENFF *https://cgenff.com/* (create an accout using your professional email)
+
+3️⃣ Check ligand topology early
+
+Validate charges, atom types, and bond lengths before merging with protein.
+Run a short EM on the ligand alone to make sure parameters are reasonable.
+Avoid using ligands with unparameterized functional groups — GROMACS will explode otherwise.
+
+4️⃣ Use a buffer around your system
+
+Protein-ligand complex should be at least 1 nm away from box edges.
+Too small a box → protein interacts with its own periodic image → artifacts.
+
+5️⃣ Solvate carefully
+
+Overlapping waters → EM fails with LINCS warnings.
+Check that the system doesn’t have atoms closer than ~0.2–0.3 nm after solvation.
+
+6️⃣ Neutralize and set ionic strength
+
+Use genion to add ions: neutralize and optionally mimic physiological conditions (~0.15 M NaCl).
+Avoid skipping this step — charge imbalance can destabilize EM.
+
+7️⃣ Energy minimization before MD
+
+Always do EM first — never jump straight to MD.
+Disable constraints initially if the system is badly strained.
+Check max force: should be < 1000 kJ/mol/nm (smaller is better).
+Avoid running MD with astronomically high forces — your log shows 10¹⁸ kJ/mol forces → system will explode.
+
+8️⃣ Check for structural issues
+
+Visualize the system after EM: Any overlapping atoms?/ Bonds extremely stretched?/ Ligand properly positioned in binding site?
+Small issues initially lead to huge MD failures later.
+
+9️⃣ Short equilibration before production MD
+
+Use NVT (constant volume) and NPT (constant pressure) runs before long MD.
+Avoid going straight to production MD — sudden temperature or pressure changes can destroy your system.
+
+1️⃣0️⃣ Keep an eye on time step and constraints
+
+2 fs is standard for constrained hydrogens.
+Do not constrain bonds until EM is stable.
+Avoid using large time steps in initial EM — system may blow up.
+
+1️⃣1️⃣ Automate but validate
+
+Pipelines like CHARMM for ligands + GROMACS scripts for EM/MD save time.
+But always inspect the generated topologies, box, water, and ion distribution.
+Avoid blindly trusting automated scripts — they sometimes produce bad topologies for complex ligands.
+
+1️⃣2️⃣ Document and version
+
+Keep all .mdp files, ligand parameters, and EM outputs.
+This saves hours of debugging when something goes wrong.
+Avoid overwriting original structures — keep checkpoints.
+
+Do this is a quick sanity checklist before running MD:
+
+Protein + ligand cleaned, hydrogens added.
+Ligand parameters validated.
+Box large enough (~1 nm buffer).
+Solvent and ions properly added.
+Energy minimized without crazy forces.
+Short equilibration (NVT → NPT) stable.
+Forces, temperature, and pressure checked.
+Checkpoints and logs saved.
