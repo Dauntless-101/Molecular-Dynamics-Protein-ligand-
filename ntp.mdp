@@ -1,0 +1,2 @@
+; For example, 500 ps NPT equilibration
+nsteps = 250000    ; 250000 steps * 0.002 ps = 500 ps

@@ -1,0 +1,31 @@
+; Production MD simulation mdp file
+integrator      = md
+dt              = 0.002        ; 2 fs
+nsteps          = 5000000      ; 10 ns total (adjust as needed)
+nstxout         = 10000        ; coordinates saved every 20 ps
+nstvout         = 10000        ; velocities
+nstenergy       = 1000         ; energy every 2 ps
+nstlog          = 1000
+nstxout-compressed = 1000      ; compressed trajectory every 2 ps
+continuation    = yes
+constraint_algorithm = lincs
+constraints     = all-bonds
+cutoff-scheme   = Verlet
+nstlist         = 10
+rcoulomb        = 1.0
+rvdw            = 1.0
+coulombtype     = PME
+pbc             = xyz
+
+; Temperature coupling
+tcoupl          = V-rescale
+tc-grps         = Protein Non-Protein
+tau_t           = 0.1 0.1
+ref_t           = 300 300
+
+; Pressure coupling
+pcoupl          = Parrinello-Rahman
+pcoupltype      = isotropic
+tau_p           = 2.0
+ref_p           = 1.0
+compressibility = 4.5e-5
