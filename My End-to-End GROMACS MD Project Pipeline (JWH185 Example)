@@ -81,7 +81,7 @@ Step 6: Add ions
 $GMX grompp -f ../04_mdp/ions.mdp -c solvated.gro -p topol.top -o ions.tpr
 echo "SOL" | $GMX genion -s ions.tpr -o solv_ions.gro \
     -p topol.top -pname NA -nname CL -neutral -conc 0.15
-# 🔹 If grompp shows minor warnings (like missing angles for water), it's safe with -maxwarn 1
+# If grompp shows minor warnings (like missing angles for water), it's safe with -maxwarn 1
 $GMX grompp -f ../04_mdp/ions.mdp -c solvated.gro -p topol.top -o ions.tpr -maxwarn1
 
 Step 7: Energy Minimization (EM)
@@ -91,7 +91,7 @@ cd ~/MD_Project_JWH185/05_em
 $GMX grompp -f ../04_mdp/em.mdp -c ../03_topology/solv_ions.gro \
             -p ../03_topology/topol.top -o em.tpr
 $GMX mdrun -deffnm em
-# 🔹 If there are minor warnings (e.g., constraints), they are usually no big deal so you could use -maxwarn 1 like the previous step.
+# If there are minor warnings (e.g., constraints), they are usually no big deal so you could use -maxwarn 1 like the previous step.
 # Check LINCS deviations, max force, and ensure no huge spikes (>1e4 kJ/mol/nm)
 
 Step 8: NVT Equilibration
@@ -102,7 +102,7 @@ $GMX grompp -f ../04_mdp/npt.mdp -c ../06_nvt/nvt.gro \
             -p ../03_topology/topol.top -o npt.tpr
 $GMX mdrun -deffnm npt
 
-# 🔹 Minor pressure/constraint warnings are usually safe so you can use -maxwarn 1.
+# Minor pressure/constraint warnings are usually safe so you can use -maxwarn 1.
 # Check density ~1000 kg/m³, P ~1 bar
 
 Step 9: NPT Equilibration
@@ -113,7 +113,7 @@ $GMX grompp -f ../04_mdp/npt.mdp -c ../06_nvt/nvt.gro \
             -p ../03_topology/topol.top -o npt.tpr
 $GMX mdrun -deffnm npt
 
-# 🔹 Minor pressure/constraint warnings are usually safe (-maxwarn 1 could be used)
+#  Minor pressure/constraint warnings are usually safe (-maxwarn 1 could be used)
 # Check density ~1000 kg/m³, P ~1 bar
 
 Step 10: Production MD
@@ -124,7 +124,7 @@ $GMX grompp -f ../04_mdp/md.mdp -c ../07_npt/npt.gro \
             -o md.tpr
 $GMX mdrun -deffnm md
 
-# 🔹 Minor warnings are usually safe; verify RMSD, energy, and no unstable forces.
+# Minor warnings are usually safe; verify RMSD, energy, and no unstable forces.
 
 Step 11: Analysis
 cd ~/MD_Project_JWH185/09_analysis
