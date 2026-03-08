@@ -1,4 +1,5 @@
 Before diving into MD, there are a lot of subtle things that can save hours or days of your time.
+(Downloading link at the bottom)
 1. Why did I use GROMACS ?
 GROMACS (GROningen MAchine for Chemical Simulations) is one of the most widely used molecular dynamics engines in the world, and for good reasons:
 Speed and Efficiency:Can simulate large protein-ligand systems faster than most other MD engines while maintaining accuracy.
@@ -37,3 +38,6 @@ This table shows the differences between each FF
 | **Stability in EM/MD**             | Less prone to LINCS or extreme force failures             | Generally stable                                           | Stable, but slower EM convergence                    | Can be unstable with small molecules |
 | **Community & Literature Support** | Widely validated; latest 2022 updates                     | Extensive, many publications                               | Moderate                                             | Limited, mostly legacy studies       |
 | **Future-Proof**                   | Ready for enhanced sampling, free energy calculations     | Good, but may require older AMBER updates                  | Moderate                                             | Limited for advanced simulations     |
+
+Link to download GROMACS: https://manual.gromacs.org/current/download.html 
+Make sure you use CHARMM36 jul2022 over the march2019
