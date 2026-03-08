@@ -1,0 +1,363 @@
+Before starting I want to mention that I will be using a ligand called JWH-185 pubchem id is: 129858236 so the resi name will be JWH instead of LIG.
+This is written as a personal workflow. Everything is pre-organized to reduce errors and save sanity.
+
+Step 0: Organize Your Project Folder
+I like to create a single folder with everything inside so nothing gets lost.
+In the bash system
+# Create main project folder
+mkdir ~/MD_Project_JWH185
+cd ~/MD_Project_JWH185
+
+# Subfolders for clarity
+mkdir 01_scripts 02_structures 03_topology 04_mdp 05_em 06_nvt 07_npt 08_md 09_analysis
+
+# Copy all files into the respective folders:
+# - Protein PDB → 02_structures/
+# - Ligand MOL2 + CGenFF .str → 02_structures/
+# - Your Python script (cgenff_charmm2gmx_py3_nx2.py) → 01_scripts/
+# - MDP templates → 04_mdp/
+
+Step 1: Create Your Environment
+I always use a Python environment to handle CGenFF → GROMACS conversion and ensure reproducibility.
+In the bash system
+# Create conda environment
+conda create -n md_env python=3.10 -y
+conda activate md_env
+
+# Install required packages
+pip install numpy pandas biopython
+
+# Make sure GROMACS is accessible
+export GMX=/usr/bin/gmx
+export PATH=$GMX:$PATH
+
+Step 2: Ligand Preparation (CGenFF → GROMACS)
+cd ~/MD_Project_JWH185/02_structures
+
+# Run CGenFF to get topology & parameter file
+# JWH185.mol2 + JWH185.str → generate GROMACS ligand files
+python3 ../01_scripts/cgenff_charmm2gmx_py3_nx2.py \
+    -i JWH185.mol2 \
+    -p JWH185.str \
+    -o ../03_topology/JWH185_GMX
+# the output should be JWH185.itp and JWH185.gro (make sure to check it)
+# Change residue name in GRO file to JWH (it usually has the pubchem or other chem-databases id numbers of the ligand)
+sed -i 's/^ *[0-9]\{1,5\} 129858236 /  1 JWH /' ../03_topology/JWH185_GMX.gro
+#  Rename residue in ITP file
+sed -i 's/RESI 129858236/RESI JWH/' ../03_topology/JWH185_GMX.itp
+sed -i 's/129858236 /JWH /g' ../03_topology/JWH185_GMX.itp
+
+Step 3: Protein Preparation
+#In the bash system
+cd ~/MD_Project_JWH185/03_topology
+
+$GMX pdb2gmx -f ../02_structures/protein.pdb \
+             -o protein_processed.gro \
+             -p topol.top \
+             -water tip3p -ff charmm36-jul2022
+
+Step 4: Merge Protein + Ligand
+#In the bash system
+cat protein_processed.gro JWH185_GMX.gro > complex.gro
+
+# Update topology
+echo '#include "JWH185.itp"' >> topol.top
+echo 'molecules:' >> topol.top
+echo 'Protein 1' >> topol.top
+echo 'JWH185 1' >> topol.top
+
+Step 5: Define Box & Solvate
+#In the bash system
+cd ~/MD_Project_JWH185/03_topology
+# Center complex and create cubic box with 1 nm distance from edges
+$GMX editconf -f complex.gro -o boxed.gro -c -d 1.0 -bt cubic
+# Optional: Visualize to confirm coordinates are centered
+$GMX editconf -f boxed.gro -o boxed_centered.pdb
+# Solvate the box with water molecules
+$GMX solvate -cp boxed.gro -cs spc216.gro -o solvated.gro -p topol.top
+
+Step 6: Add ions
+#In the bash system
+$GMX grompp -f ../04_mdp/ions.mdp -c solvated.gro -p topol.top -o ions.tpr
+echo "SOL" | $GMX genion -s ions.tpr -o solv_ions.gro \
+    -p topol.top -pname NA -nname CL -neutral -conc 0.15
+# 🔹 If grompp shows minor warnings (like missing angles for water), it's safe with -maxwarn 1
+$GMX grompp -f ../04_mdp/ions.mdp -c solvated.gro -p topol.top -o ions.tpr -maxwarn1
+
+Step 7: Energy Minimization (EM)
+#In the bash system
+cd ~/MD_Project_JWH185/05_em
+
+$GMX grompp -f ../04_mdp/em.mdp -c ../03_topology/solv_ions.gro \
+            -p ../03_topology/topol.top -o em.tpr
+$GMX mdrun -deffnm em
+# 🔹 If there are minor warnings (e.g., constraints), they are usually no big deal so you could use -maxwarn 1 like the previous step.
+# Check LINCS deviations, max force, and ensure no huge spikes (>1e4 kJ/mol/nm)
+
+Step 8: NVT Equilibration
+cd ~/MD_Project_JWH185/07_npt
+
+$GMX grompp -f ../04_mdp/npt.mdp -c ../06_nvt/nvt.gro \
+            -r ../06_nvt/nvt.gro -t ../06_nvt/nvt.cpt \
+            -p ../03_topology/topol.top -o npt.tpr
+$GMX mdrun -deffnm npt
+
+# 🔹 Minor pressure/constraint warnings are usually safe so you can use -maxwarn 1.
+# Check density ~1000 kg/m³, P ~1 bar
+
+Step 9: NPT Equilibration
+cd ~/MD_Project_JWH185/07_npt
+
+$GMX grompp -f ../04_mdp/npt.mdp -c ../06_nvt/nvt.gro \
+            -r ../06_nvt/nvt.gro -t ../06_nvt/nvt.cpt \
+            -p ../03_topology/topol.top -o npt.tpr
+$GMX mdrun -deffnm npt
+
+# 🔹 Minor pressure/constraint warnings are usually safe (-maxwarn 1 could be used)
+# Check density ~1000 kg/m³, P ~1 bar
+
+Step 10: Production MD
+cd ~/MD_Project_JWH185/08_md
+
+$GMX grompp -f ../04_mdp/md.mdp -c ../07_npt/npt.gro \
+            -t ../07_npt/npt.cpt -p ../03_topology/topol.top \
+            -o md.tpr
+$GMX mdrun -deffnm md
+
+# 🔹 Minor warnings are usually safe; verify RMSD, energy, and no unstable forces.
+
+Step 11: Analysis
+cd ~/MD_Project_JWH185/09_analysis
+
+$GMX rms -s ../08_md/md.tpr -f ../08_md/md.xtc -o rmsd.xvg -tu ns
+$GMX energy -f ../08_md/md.edr -o potential.xvg
+$GMX gyrate -s ../08_md/md.tpr -f ../08_md/md.xtc -o gyrate.xvg
+$GMX trjconv -s ../08_md/md.tpr -f ../08_md/md.xtc \
+             -o md_noPBC.xtc -pbc mol -center
+
+#P.S: the commands to do the checks are as follows
+############################################################
+# GROMACS MD SURVIVAL COMMANDS
+# Checkpoints, Restarting Simulations, and Monitoring
+############################################################
+
+
+############################################################
+# RESTART SIMULATIONS FROM CHECKPOINTS
+############################################################
+
+# Restart production MD from last checkpoint
+gmx mdrun -deffnm md -cpi md.cpt -append
+
+# Restart NVT equilibration
+gmx mdrun -deffnm nvt -cpi nvt.cpt -append
+
+# Restart NPT equilibration
+gmx mdrun -deffnm npt -cpi npt.cpt -append
+
+# Explanation:
+# -cpi     = continue from checkpoint
+# -append  = continue writing to same output files
+# md.cpt   = checkpoint file automatically written by GROMACS
+
+
+############################################################
+# MONITOR SIMULATION IN REAL TIME
+############################################################
+
+# Watch simulation log live
+tail -f md.log
+
+# Check simulation performance (ns/day)
+grep Performance md.log
+
+
+
+############################################################
+# EXTRACT THERMODYNAMIC PROPERTIES
+############################################################
+
+# Extract temperature
+gmx energy -f md.edr -o temperature.xvg
+
+# When prompted choose:
+# Temperature
+
+
+# Extract pressure
+gmx energy -f md.edr -o pressure.xvg
+
+# Choose:
+# Pressure
+
+
+# Extract density
+gmx energy -f md.edr -o density.xvg
+
+# Choose:
+# Density
+
+
+# Extract potential energy
+gmx energy -f md.edr -o potential.xvg
+
+# Choose:
+# Potential
+
+
+# Extract total energy
+gmx energy -f md.edr -o total_energy.xvg
+
+# Choose:
+# Total-Energy
+
+
+# Extract kinetic energy
+gmx energy -f md.edr -o kinetic_energy.xvg
+
+# Choose:
+# Kinetic-En.
+
+
+# Extract enthalpy
+gmx energy -f md.edr -o enthalpy.xvg
+
+# Choose:
+# Enthalpy
+
+
+
+############################################################
+# EXTRACT MULTIPLE THERMODYNAMIC PROPERTIES AT ONCE
+############################################################
+
+# Run energy analysis
+gmx energy -f md.edr -o thermo_properties.xvg
+
+# When prompted select:
+# Temperature
+# Pressure
+# Density
+# Potential
+# Total-Energy
+# Kinetic-En.
+# Enthalpy
+
+
+
+############################################################
+# CHECK STRUCTURAL STABILITY (RMSD)
+############################################################
+
+# Calculate RMSD over time
+gmx rms -s md.tpr -f md.xtc -o rmsd.xvg -tu ns
+
+# -s md.tpr = reference structure
+# -f md.xtc = trajectory
+# -tu ns    = time units in nanoseconds
+
+
+
+############################################################
+# CHECK PROTEIN COMPACTNESS (RADIUS OF GYRATION)
+############################################################
+
+gmx gyrate -s md.tpr -f md.xtc -o gyrate.xvg
+
+# Stable Rg means protein structure is stable
+
+
+
+############################################################
+# REMOVE PERIODIC BOUNDARY CONDITIONS
+############################################################
+
+# This step is important before visualization
+
+gmx trjconv -s md.tpr -f md.xtc -o md_noPBC.xtc -pbc mol -center
+
+# -pbc mol   = keeps molecules whole
+# -center    = centers protein in box
+
+
+
+############################################################
+# CHECK DENSITY AFTER NPT EQUILIBRATION
+############################################################
+
+gmx energy -f npt.edr -o density_npt.xvg
+
+# Expected density for water system:
+# ~1000 kg/m^3
+
+
+############################################################
+# CHECK TEMPERATURE AFTER NVT
+############################################################
+
+gmx energy -f nvt.edr -o temperature_nvt.xvg
+
+# Expected temperature:
+# ~300 K stable
+
+
+
+############################################################
+# QUICK SYSTEM HEALTH CHECK
+############################################################
+
+# Check temperature
+gmx energy -f md.edr -o check_temp.xvg
+
+# Check pressure
+gmx energy -f md.edr -o check_pressure.xvg
+
+# Check density
+gmx energy -f md.edr -o check_density.xvg
+
+# Check potential energy
+gmx energy -f md.edr -o check_potential.xvg
+
+
+
+############################################################
+# WHAT A HEALTHY SIMULATION LOOKS LIKE
+############################################################
+
+# Temperature   ≈ 300 K stable
+# Pressure      fluctuates around 1 bar
+# Density       ≈ 1000 kg/m^3
+# Potential     stable plateau
+# RMSD          stabilizes
+# Radius gyrate stable
+
+
+
+############################################################
+# WARNING SIGNS TO WATCH
+############################################################
+
+# If you see these in md.log:
+
+# LINCS WARNING
+# Constraint error
+# Segmentation fault
+# Temperature explosion
+# Density extremely wrong
+
+# Stop simulation and inspect system.
+
+############################################################
+# SAFE HPC RUN COMMAND
+############################################################
+
+gmx mdrun -deffnm md -cpi md.cpt -append -ntmpi 1 -ntomp 8
+
+# -cpi md.cpt   = restart from checkpoint
+# -append       = keep previous output
+# -ntmpi 1      = MPI threads
+# -ntomp 8      = OpenMP threads
+
+############################################################
+# END OF MD MONITORING CHEAT SHEET
+############################################################
