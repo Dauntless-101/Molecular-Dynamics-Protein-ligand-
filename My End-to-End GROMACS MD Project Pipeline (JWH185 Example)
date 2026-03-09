@@ -126,16 +126,126 @@ $GMX mdrun -deffnm md
 
 # Minor warnings are usually safe; verify RMSD, energy, and no unstable forces.
 
-Step 11: Analysis
+# ==========================================
+# Step 11: Analysis
+# ==========================================
+
 cd ~/MD_Project_JWH185/09_analysis
 
-$GMX rms -s ../08_md/md.tpr -f ../08_md/md.xtc -o rmsd.xvg -tu ns
-$GMX energy -f ../08_md/md.edr -o potential.xvg
-$GMX gyrate -s ../08_md/md.tpr -f ../08_md/md.xtc -o gyrate.xvg
+# ------------------------------------------
+# Remove periodic boundary conditions (PBC)
+# ------------------------------------------
+# This centers the protein and removes jumps across the box
 $GMX trjconv -s ../08_md/md.tpr -f ../08_md/md.xtc \
              -o md_noPBC.xtc -pbc mol -center
 
-#P.S: the commands to do the checks are as follows
+# Usually select:
+# Protein for centering
+# System for output
+
+
+# ------------------------------------------
+# Backbone RMSD (protein stability)
+# ------------------------------------------
+$GMX rms -s ../08_md/md.tpr -f md_noPBC.xtc \
+         -o rmsd_backbone.xvg -tu ns
+
+# Select:
+# Backbone
+# Backbone
+
+
+# ------------------------------------------
+# Ligand RMSD (LMSD)
+# ------------------------------------------
+# RMSD of the ligand relative to the protein binding pocket
+$GMX rms -s ../08_md/md.tpr -f md_noPBC.xtc \
+         -o lmsd_ligand.xvg -tu ns
+
+# Select:
+# Protein
+# JWH   (or your ligand group name)
+
+
+# ------------------------------------------
+# RMSF (residue fluctuations)
+# ------------------------------------------
+$GMX rmsf -s ../08_md/md.tpr -f md_noPBC.xtc \
+          -o rmsf_residue.xvg -res
+
+
+# ------------------------------------------
+# Radius of Gyration (protein compactness)
+# ------------------------------------------
+$GMX gyrate -s ../08_md/md.tpr -f md_noPBC.xtc \
+            -o rg.xvg
+
+# Select:
+# Protein
+
+
+# ------------------------------------------
+# Hydrogen Bonds (protein–ligand)
+# ------------------------------------------
+$GMX hbond -s ../08_md/md.tpr -f md_noPBC.xtc \
+           -num hbonds_JWH.xvg
+
+# Select:
+# Protein
+# JWH
+
+
+# ------------------------------------------
+# Minimum distance (ligand–protein)
+# ------------------------------------------
+$GMX mindist -s ../08_md/md.tpr -f md_noPBC.xtc \
+             -od mindist_JWH.xvg
+
+# Select:
+# Protein
+# JWH
+
+
+# ------------------------------------------
+# Ligand–protein distance
+# ------------------------------------------
+$GMX distance -s ../08_md/md.tpr -f md_noPBC.xtc \
+              -oall dist_ligand.xvg
+
+
+# ------------------------------------------
+# SASA (Solvent Accessible Surface Area)
+# ------------------------------------------
+$GMX sasa -s ../08_md/md.tpr -f md_noPBC.xtc \
+          -o sasa.xvg
+
+# Select:
+# Protein
+
+
+# ------------------------------------------
+# Energies from md.edr
+# ------------------------------------------
+$GMX energy -f ../08_md/md.edr -o potential.xvg
+# choose: Potential
+
+$GMX energy -f ../08_md/md.edr -o temperature.xvg
+# choose: Temperature
+
+$GMX energy -f ../08_md/md.edr -o density.xvg
+# choose: Density
+
+
+# ------------------------------------------
+# (Optional) Total energy
+# ------------------------------------------
+$GMX energy -f ../08_md/md.edr -o energy_total.xvg
+# choose: Total-Energy
+
+
+#P.S: The R script to plot these outputs is attached to the repository (md_plot_all.R)
+
+#the commands to do the checks are as follows
 
 ############################################################
 # RESTART SIMULATIONS FROM CHECKPOINTS
