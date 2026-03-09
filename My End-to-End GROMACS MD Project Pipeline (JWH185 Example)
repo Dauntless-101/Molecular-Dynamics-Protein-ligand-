@@ -27,7 +27,7 @@ conda activate md_env
 # Install required packages
 pip install numpy pandas biopython
 
-# Make sure GROMACS is accessible
+# Make sure GROMACS is accessible (if you don't want to you can use gmx instead of $GMX (the thing about $GMX is that it's like an automated update of GROMACS-when GROMACS does an update you get the updates automatically too))
 export GMX=/usr/bin/gmx
 export PATH=$GMX:$PATH
 
