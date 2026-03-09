@@ -136,11 +136,6 @@ $GMX trjconv -s ../08_md/md.tpr -f ../08_md/md.xtc \
              -o md_noPBC.xtc -pbc mol -center
 
 #P.S: the commands to do the checks are as follows
-############################################################
-# GROMACS MD SURVIVAL COMMANDS
-# Checkpoints, Restarting Simulations, and Monitoring
-############################################################
-
 
 ############################################################
 # RESTART SIMULATIONS FROM CHECKPOINTS
