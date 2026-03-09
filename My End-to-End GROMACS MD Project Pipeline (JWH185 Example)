@@ -352,7 +352,3 @@ gmx mdrun -deffnm md -cpi md.cpt -append -ntmpi 1 -ntomp 8
 # -append       = keep previous output
 # -ntmpi 1      = MPI threads
 # -ntomp 8      = OpenMP threads
-
-############################################################
-# END OF MD MONITORING CHEAT SHEET
-############################################################
