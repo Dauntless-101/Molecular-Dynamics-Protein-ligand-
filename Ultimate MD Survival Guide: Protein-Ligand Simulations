@@ -38,6 +38,7 @@ Rename ligand residues before topology generation so force field recognizes them
  DOs
 Clean structures and validate ligands.
 Rename ligands from PubChem IDs → LIG before generating topologies.
+Check your topol.top file for any inconsistencies with what you have in your protein and ligand .gro files.
 Keep ≥1 nm box buffer, neutralize, and add ions.
 EM first (max force <1000 kJ/mol/nm).
 NVT/NPT equilibration before production; monitor RMSD, T, P, density.
